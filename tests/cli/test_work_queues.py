@@ -21,6 +21,17 @@ async def read_queue(prefect_client, name, pool=None):
 
 
 class TestCreateWorkQueue:
+    def test_create_work_queue_with_negative_limit_is_rejected(self):
+        invoke_and_assert(
+            command=["work-queue", "create", "q-name", "--limit", "-1"],
+            expected_output_contains="Must be >= 0.",
+            expected_code=1,
+        )
+        invoke_and_assert(
+            command=["work-queue", "inspect", "q-name"],
+            expected_code=1,
+        )
+
     def test_create_work_queue(self):
         invoke_and_assert(
             command="work-queue create q-name",
@@ -176,6 +187,18 @@ class TestCreateWorkQueue:
 
 
 class TestSetConcurrencyLimit:
+    async def test_set_negative_concurrency_limit_is_rejected(
+        self, prefect_client, work_queue
+    ):
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["work-queue", "set-concurrency-limit", work_queue.name, "-1"],
+            expected_output_contains="Must be >= 0.",
+            expected_code=1,
+        )
+        q = await read_queue(prefect_client, work_queue.name)
+        assert q.concurrency_limit is None
+
     async def test_set_concurrency_limit(self, prefect_client, work_queue):
         assert work_queue.concurrency_limit is None
         await run_sync_in_worker_thread(

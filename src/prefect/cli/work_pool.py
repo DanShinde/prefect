@@ -838,6 +838,7 @@ async def update(
                 "The concurrency limit for the work pool."
                 " If None, the concurrency limit will not be modified."
             ),
+            validator=cyclopts.validators.Number(gte=0),
         ),
     ] = None,
     description: Annotated[
@@ -997,7 +998,11 @@ async def set_concurrency_limit(
         str, cyclopts.Parameter(help="The name of the work pool to update.")
     ],
     concurrency_limit: Annotated[
-        int, cyclopts.Parameter(help="The new concurrency limit for the work pool.")
+        int,
+        cyclopts.Parameter(
+            help="The new concurrency limit for the work pool.",
+            validator=cyclopts.validators.Number(gte=0),
+        ),
     ],
 ):
     """Set the concurrency limit for a work pool.

@@ -79,7 +79,10 @@ async def create(
     limit: Annotated[
         Optional[int],
         cyclopts.Parameter(
-            "--limit", alias="-l", help="The concurrency limit to set on the queue."
+            "--limit",
+            alias="-l",
+            help="The concurrency limit to set on the queue.",
+            validator=cyclopts.validators.Number(gte=0),
         ),
     ] = None,
     pool: Annotated[
@@ -175,7 +178,11 @@ async def create(
 async def set_concurrency_limit(
     name: Annotated[str, cyclopts.Parameter(help="The name or ID of the work queue")],
     limit: Annotated[
-        int, cyclopts.Parameter(help="The concurrency limit to set on the queue.")
+        int,
+        cyclopts.Parameter(
+            help="The concurrency limit to set on the queue.",
+            validator=cyclopts.validators.Number(gte=0),
+        ),
     ],
     *,
     pool: Annotated[

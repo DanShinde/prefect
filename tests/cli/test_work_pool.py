@@ -576,6 +576,18 @@ class TestSetConcurrencyLimit:
         client_res = await prefect_client.read_work_pool(work_pool.name)
         assert client_res.concurrency_limit == 10
 
+    async def test_set_negative_concurrency_limit_is_rejected(
+        self, prefect_client, work_pool
+    ):
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["work-pool", "set-concurrency-limit", work_pool.name, "-1"],
+            expected_output_contains="Must be >= 0.",
+            expected_code=1,
+        )
+        client_res = await prefect_client.read_work_pool(work_pool.name)
+        assert client_res.concurrency_limit is None
+
 
 class TestClearConcurrencyLimit:
     async def test_clear_concurrency_limit(self, prefect_client, work_pool):
@@ -703,6 +715,24 @@ class TestLS:
 
 
 class TestUpdate:
+    async def test_update_negative_concurrency_limit_is_rejected(
+        self, prefect_client, work_pool
+    ):
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "work-pool",
+                "update",
+                work_pool.name,
+                "--concurrency-limit",
+                "-1",
+            ],
+            expected_output_contains="Must be >= 0.",
+            expected_code=1,
+        )
+        client_res = await prefect_client.read_work_pool(work_pool.name)
+        assert client_res.concurrency_limit is None
+
     async def test_update_description(self, prefect_client, work_pool):
         assert work_pool.description is None
         assert work_pool.type is not None
